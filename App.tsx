@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
 
   const fetchBooks = useCallback(async () => {
     setIsLoading(true);
@@ -47,19 +48,25 @@ const App: React.FC = () => {
     });
   };
 
-  const handleRemoveFromCart = (bookId: string) => {
+  const handleRemoveFromCart = async (bookId: string) => {
+    setUpdatingItemId(bookId);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async operation
     setCartItems(prevItems => prevItems.filter(item => item.id !== bookId));
+    setUpdatingItemId(null);
   };
 
-  const handleUpdateQuantity = (bookId: string, quantity: number) => {
+  const handleUpdateQuantity = async (bookId: string, quantity: number) => {
     if (quantity <= 0) {
-      handleRemoveFromCart(bookId);
+      await handleRemoveFromCart(bookId);
     } else {
+      setUpdatingItemId(bookId);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async operation
       setCartItems(prevItems =>
         prevItems.map(item =>
           item.id === bookId ? { ...item, quantity } : item
         )
       );
+      setUpdatingItemId(null);
     }
   };
 
@@ -87,6 +94,7 @@ const App: React.FC = () => {
         cartItems={cartItems}
         onRemoveItem={handleRemoveFromCart}
         onUpdateQuantity={handleUpdateQuantity}
+        updatingItemId={updatingItemId}
       />
       <Footer />
     </div>

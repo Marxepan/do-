@@ -9,9 +9,10 @@ interface ShoppingCartProps {
   cartItems: CartItem[];
   onRemoveItem: (bookId: string) => void;
   onUpdateQuantity: (bookId: string, quantity: number) => void;
+  updatingItemId?: string | null;
 }
 
-const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose, cartItems, onRemoveItem, onUpdateQuantity }) => {
+const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose, cartItems, onRemoveItem, onUpdateQuantity, updatingItemId }) => {
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -31,8 +32,15 @@ const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose, cartItems,
             <p className="text-gray-500 text-center mt-8">Your cart is empty.</p>
           ) : (
             <ul className="space-y-6">
-              {cartItems.map(item => (
-                <li key={item.id} className="flex items-start space-x-4">
+              {cartItems.map(item => {
+                const isUpdating = updatingItemId === item.id;
+                return (
+                <li key={item.id} className="flex items-start space-x-4 relative">
+                   {isUpdating && (
+                    <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-md z-10" aria-hidden="true">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                    </div>
+                  )}
                   <img src={item.coverImageUrl} alt={item.title} className="w-20 h-28 object-cover rounded-md" />
                   <div className="flex-grow">
                     <h3 className="font-semibold text-gray-800">{item.title}</h3>
@@ -44,13 +52,19 @@ const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose, cartItems,
                         min="1"
                         value={item.quantity}
                         onChange={(e) => onUpdateQuantity(item.id, parseInt(e.target.value, 10))}
-                        className="w-16 text-center border rounded-md"
+                        className="w-16 text-center border rounded-md disabled:opacity-50"
+                        disabled={isUpdating}
+                        aria-label={`Quantity for ${item.title}`}
                       />
-                       <button onClick={() => onRemoveItem(item.id)} className="ml-4 text-red-500 hover:text-red-700 text-sm font-semibold">Remove</button>
+                       <button 
+                        onClick={() => onRemoveItem(item.id)} 
+                        className="ml-4 text-red-500 hover:text-red-700 text-sm font-semibold disabled:opacity-50"
+                        disabled={isUpdating}
+                       >Remove</button>
                     </div>
                   </div>
                 </li>
-              ))}
+              )})}
             </ul>
           )}
         </div>
